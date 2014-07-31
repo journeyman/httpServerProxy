@@ -23,7 +23,7 @@ namespace HttpServerProxy.App
         private async void Run()
         {
             await ServerProxy.Start("localhost", 3333);
-            player.Source = new Uri("http://localhost:3333");
+            player.Source = new Uri("http://localhost:3333/myvideo.mp4");
         }
     }
 }

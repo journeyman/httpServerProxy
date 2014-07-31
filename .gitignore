@@ -8,6 +8,7 @@
 *.pidb
 *.userprefs
 *.tmp_proj
+*.sln.ide
 **/StyleCop.Cache
 StyleCop.Cache
 TestResults

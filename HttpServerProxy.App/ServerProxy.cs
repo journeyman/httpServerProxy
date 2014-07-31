@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Interop;
 using Windows.Networking;
 using Windows.Networking.Sockets;
 using Microsoft.Phone.Logging;
@@ -34,22 +35,22 @@ namespace HttpServerProxy.App
         {
             var listener = new StreamSocketListener();
             listener.ConnectionReceived += listener_ConnectionReceived;
+
             await listener.BindEndpointAsync(new HostName(host), port.ToString());
         }
 
-        async void listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
+        void listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
         {
             var sb = new StringBuilder();
             string requestLine = null;
             //TODO: exceptions handling
+            string contents = null;
             using (var reader = new StreamReader(args.Socket.InputStream.AsStreamForRead()))
             {
-                do
+                while (!reader.EndOfStream)
                 {
-                    requestLine = await reader.ReadLineAsync();
-                    sb.AppendLine(requestLine);
-                } while (requestLine != null);
-                this.Log(sb.ToString());
+                    this.Log(reader.ReadLine());
+                }
             }
         }
     }
