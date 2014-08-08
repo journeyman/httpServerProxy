@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reactive.Linq;
+using HttpServerProxy.App.Core;
+using HttpServerProxy.App.Utils;
 using Microsoft.Phone.Controls;
 
 namespace HttpServerProxy.App
