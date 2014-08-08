@@ -1,34 +1,32 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Interop;
 using Windows.Networking;
 using Windows.Networking.Sockets;
-using Microsoft.Phone.Logging;
+using Windows.Storage.Streams;
 
 namespace HttpServerProxy.App
 {
-    public static class Ext
+    public interface IServerProxy
     {
-        public static void Log(this object This, string message, [CallerMemberName] string source = "unknown method")
-        {
-            Debug.WriteLine(source + " >>> " + message);
-        }
+        IObservable<string> Input { get; }
+        Task SendString(string payload);
     }
 
-    public class ServerProxy
+    public class ServerProxy : IServerProxy
     {
         private ServerProxy()
         {
             
         }
 
-        public static async Task Start(string host, int port)
+        public static async Task<IServerProxy> Connect(string host, int port)
         {
-            await new ServerProxy().run(host, port);
+            var proxy = new ServerProxy();
+            await proxy.run(host, port).ConfigureAwait(false);
+            return proxy;
         }
 
         private async Task run(string host, int port)
@@ -39,19 +37,47 @@ namespace HttpServerProxy.App
             await listener.BindEndpointAsync(new HostName(host), port.ToString());
         }
 
-        void listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
+        private void listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
         {
-            var sb = new StringBuilder();
-            string requestLine = null;
-            //TODO: exceptions handling
-            string contents = null;
-            using (var reader = new StreamReader(args.Socket.InputStream.AsStreamForRead()))
+            _output = args.Socket.OutputStream;
+            try
             {
-                while (!reader.EndOfStream)
+                using (var reader = new StreamReader(args.Socket.InputStream.AsStreamForRead()))
                 {
-                    this.Log(reader.ReadLine());
+                    while (!reader.EndOfStream)
+                    {
+                        var nextLine = reader.ReadLine();
+                        this.Log(nextLine);
+                        _input.OnNext(nextLine);
+                    }
                 }
+                _input.OnCompleted();
+
+            }
+            catch (Exception ex)
+            {
+                InvalidateSocketStuff();
+                _input.OnError(ex);
             }
         }
+
+        public async Task SendString(string payload)
+        {
+            if (_output == null)
+                throw new InvalidOperationException("Output stream is not yet initialized, forgot to await Connect()?");
+
+            var bytes = Encoding.UTF8.GetBytes(payload);
+            await _output.AsStreamForWrite().WriteAsync(bytes, 0, bytes.Length);
+        }
+
+        private void InvalidateSocketStuff()
+        {
+            _output = null;
+        }
+
+        private readonly ISubject<string> _input = new ReplaySubject<string>();
+        private IOutputStream _output;
+        public IObservable<string> Input { get { return _input; } }
+        
     }
 }

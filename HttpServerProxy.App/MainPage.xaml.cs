@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Navigation;
+using System.Reactive.Linq;
 using Microsoft.Phone.Controls;
-using Microsoft.Phone.Shell;
-using HttpServerProxy.App.Resources;
 
 namespace HttpServerProxy.App
 {
@@ -22,8 +15,16 @@ namespace HttpServerProxy.App
 
         private async void Run()
         {
-            await ServerProxy.Start("localhost", 3333);
+            var connection = await ServerProxy.Connect("localhost", 3333);
             player.Source = new Uri("http://localhost:3333/myvideo.mp4");
+
+            var request = await connection.Input
+                .Timeout(TimeSpan.FromSeconds(2))
+                .Catch(Observable.Empty<string>())
+                .Aggregate("", string.Concat);
+
+            this.Log("Thre request iiiiiissssss:");
+            this.Log(request);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace HttpServerProxy.App
 
         }
 
-        // Code to execute when the application is launching (eg, from Start)
+        // Code to execute when the application is launching (eg, from Connect)
         // This code will not execute when the application is reactivated
         private void Application_Launching(object sender, LaunchingEventArgs e)
         {
