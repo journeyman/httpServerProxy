@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using JetBrains.Annotations;
 
-namespace HttpServerProxy.App.Utils
+namespace Utils.Contracts
 {
-    public static class Contracts
+    public static class Contract
     {
         [Conditional("DEBUG")]
         [ContractAnnotation("condition:false => halt")]
@@ -57,7 +57,7 @@ namespace HttpServerProxy.App.Utils
         {
             if (!condition)
             {
-                Contracts.FailRange(parameterName, message);
+                Contract.FailRange(parameterName, message);
             }
         }
         /// <summary>

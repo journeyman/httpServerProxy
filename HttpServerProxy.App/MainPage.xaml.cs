@@ -20,13 +20,8 @@ namespace HttpServerProxy.App
             var connection = await ServerProxy.Connect("localhost", 3333);
             player.Source = new Uri("http://localhost:3333/myvideo.mp4");
 
-            var request = await connection.Input
-                .Timeout(TimeSpan.FromSeconds(2))
-                .Catch(Observable.Empty<string>())
-                .Aggregate("", string.Concat);
-
-            this.Log("Thre request iiiiiissssss:");
-            this.Log(request);
+            var input = new ProxyWrapper(connection).Input;
+            input.Subscribe(m => m.Log("got request!"));
         }
     }
 }

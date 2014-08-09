@@ -1,20 +1,25 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Reactive.Linq;
+using HttpServerProxy.App.Utils;
+using Utils;
 
 namespace HttpServerProxy.App.Core
 {
     public class ProxyWrapper
     {
-        private readonly IServerProxy _proxy;
-
         public ProxyWrapper(IServerProxy proxy)
         {
-            _proxy = proxy;
-
-            var request = proxy.Input
-                .Timeout(TimeSpan.FromSeconds(2))
-                .Catch(Observable.Empty<string>())
-                .Aggregate("", (s1, s2) => string.Concat(s1, s2, Environment.NewLine));
+            Input = proxy.Input
+                .BufferWithPeriodOfSilence(TimeSpan.FromSeconds(2d))
+                .Select(x => x.ToRequest())
+                //TODO:SS: figure out this stuff at last!
+                .Publish().RefCount();
         }
+
+        public IObservable<HttpRequestMessage> Input { get; private set; }
     }
+
 }

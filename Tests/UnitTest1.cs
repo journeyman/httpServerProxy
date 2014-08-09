@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
-using System.Text;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using Utils;
 
@@ -21,6 +20,28 @@ namespace Tests
             var stream = source.BufferWithPeriodOfSilence(TimeSpan.FromMilliseconds(300));
             stream.Subscribe(x => Debug.WriteLine("Buffered: " + x.Count));
             stream.Wait();
+        }
+
+        [TestMethod]
+        public void HttpRequestMessage_Parsing_Test()
+        {
+            const string raw = @"
+GET /myvideo.mp4 HTTP/1.1
+Cache-Control: no-cache
+Connection: Keep-Alive
+Pragma: getIfoFileURI.dlna.org
+Accept: */*
+User-Agent: NSPlayer/12.00.9200.16409 WMFSDK/12.00.9200.16409
+GetContentFeatures.DLNA.ORG: 1
+Host: localhost:3333
+";
+
+            var req = raw.Split(new []{Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries)
+                .ToRequest();
+
+            Assert.AreEqual(HttpMethod.Get, req.Method);
+            Assert.AreEqual("/myvideo.mp4", req.RequestUri.OriginalString);
+            Assert.AreEqual("localhost:3333", req.Headers.Host);
         }
     }
 }

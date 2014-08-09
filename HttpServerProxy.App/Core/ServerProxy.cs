@@ -7,6 +7,7 @@ using Windows.Networking;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using HttpServerProxy.App.Utils;
+using Utils.Contracts;
 
 namespace HttpServerProxy.App.Core
 {
@@ -58,8 +59,7 @@ namespace HttpServerProxy.App.Core
 
         public async Task SendString(string payload)
         {
-            if (_output == null)
-                throw new InvalidOperationException("Output stream is not yet initialized, forgot to await Connect()?");
+            _output.NotNull("Output stream is not yet initialized, forgot to await Connect()?");
 
             var bytes = Encoding.UTF8.GetBytes(payload);
             await _output.AsStreamForWrite().WriteAsync(bytes, 0, bytes.Length);
