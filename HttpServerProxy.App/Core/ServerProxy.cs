@@ -35,6 +35,7 @@ namespace HttpServerProxy.App.Core
 
         private void listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
         {
+            this.Log("new Connection received");
             _output = args.Socket.OutputStream;
             try
             {
@@ -52,6 +53,7 @@ namespace HttpServerProxy.App.Core
             }
             catch (Exception ex)
             {
+                this.Log("exception, invalidating socket stuff");
                 InvalidateSocketStuff();
                 _input.OnError(ex);
             }

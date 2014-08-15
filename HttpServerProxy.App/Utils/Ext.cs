@@ -76,27 +76,5 @@ namespace HttpServerProxy.App.Utils
             }
             return request.ToString();
         }
-
-        public static async Task<string> ToRaw(this HttpResponseMessage This)
-        {
-            var sb = new StringBuilder();
-
-            //status line
-            sb.AppendFormat("HTTP/1.1 {0} {1}", This.ReasonPhrase, This.StatusCode.ToString());
-            sb.AppendLine();
-
-            //headers
-            sb.AppendLine(This.Headers.ToString());
-
-            //empty line
-            sb.AppendLine();
-
-            //content
-            var content = await This.Content.ReadAsStringAsync();
-            sb.Append(content);
-
-            var response = sb.ToString();
-            return response;
-        }
     }
 }
